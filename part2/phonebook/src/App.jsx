@@ -1,14 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Name from "./components/Name";
 import Filter from "./components/Filter";
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: "Arto Hellas", number: "312546598" },
-  ]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
+
+  const hook = () => {
+    console.log("Efecto");
+    axios
+      .get("http://localhost:3001/persons")
+      .then((response) => {
+        console.log("promesa ok");
+        setPersons(response.data);
+      })
+      .catch((error) => {
+        console.error("error al obtener datos", error);
+      });
+  };
+
+  useEffect(hook, []);
 
   const addName = (event) => {
     event.preventDefault();

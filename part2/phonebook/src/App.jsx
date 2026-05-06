@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import Name from "./components/Name";
 import Filter from "./components/Filter";
+import personService from "./services/person";
+import person from "./services/person";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
@@ -22,7 +23,12 @@ const App = () => {
       });
   };
 
-  useEffect(hook, []);
+  //useEffect(hook, []);
+  useEffect(() => {
+    personService.getAll().then((initialPersons) => {
+      setPersons(initialPersons);
+    });
+  }, []);
 
   const addName = (event) => {
     event.preventDefault();
@@ -37,14 +43,16 @@ const App = () => {
       return;
     }
 
-    const nameObjetc = {
+    const nameObject = {
       name: newName,
       number: newNumber,
     };
 
-    setPersons(persons.concat(nameObjetc));
-    setNewName("");
-    setNewNumber("");
+    personService.create(nameObject).then((returnedPerson) => {
+      setPersons(persons.concat(nameObject));
+      setNewName("");
+      setNewNumber("");
+    });
   };
 
   const handleNameChange = (event) => {

@@ -33,26 +33,52 @@ const App = () => {
   const addName = (event) => {
     event.preventDefault();
 
-    //Valido si existe el elemento
-    const nameExiste = persons.some(
-      (person) => person.name.toLowerCase() === newName.toLowerCase(),
-    );
-
-    if (nameExiste) {
-      alert(`${newName} is already to added to phonebook`);
-      return;
-    }
-
     const nameObject = {
       name: newName,
       number: newNumber,
     };
+
+    //Valido si existe el elemento
+    const nameExiste = persons.find(
+      (person) => person.name.toLowerCase() === newName.toLowerCase(),
+    );
+
+    if (nameExiste) {
+      const confirmUpdate = window.confirm(
+        `${newName} is already added to phonebook, replace the old number with a new one?`,
+      );
+
+      if (!confirmUpdate) {
+        return;
+      }
+
+      personService
+        .update(nameExiste.id, nameObject)
+        .then((returnedPerson) => {
+          setPersons(
+            persons.map((p) => (p.id !== nameExiste.id ? p : returnedPerson)),
+          );
+          setNewName("");
+          setNewNumber("");
+        })
+        .catch((error) => {
+          alert(
+            `Information of ${nameExiste.name} has already been removed from server`,
+          );
+          setPersons(persons.filter((p) => p.id !== nameExiste.id));
+        });
+
+      return;
+    }
 
     personService.create(nameObject).then((returnedPerson) => {
       setPersons(persons.concat(returnedPerson));
       setNewName("");
       setNewNumber("");
     });
+
+    alert(`${newName} is already to added to phonebook`);
+    return;
   };
 
   const handleNameChange = (event) => {
@@ -73,7 +99,6 @@ const App = () => {
   );
 
   const deleteNameOf = (id) => {
-    //const url = "http://localhost:3001/persons";
     const person = persons.find((n) => n.id === id);
     const confirmDelete = window.confirm(`Delete ${person.name} ?`);
 

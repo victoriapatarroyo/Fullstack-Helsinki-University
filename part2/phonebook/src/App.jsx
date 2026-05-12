@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import Name from "./components/Name";
 import Filter from "./components/Filter";
 import personService from "./services/person";
-//import person from "./services/person";
+import Notification from "./components/Notification";
+import "./index.css";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const hook = () => {
     console.log("Efecto");
@@ -77,7 +79,10 @@ const App = () => {
       setNewNumber("");
     });
 
-    alert(`${newName} is already to added to phonebook`);
+    setErrorMessage(`${newName} is already to added to phonebook`);
+    setTimeout(() => {
+      setErrorMessage(null);
+    }, 5000);
     return;
   };
 
@@ -110,9 +115,13 @@ const App = () => {
       .deletePerson(id)
       .then(() => setPersons(persons.filter((n) => n.id !== id)))
       .catch((error) => {
-        alert(
+        //alert(`Information of ${person.name} has already been removed from server`,);
+        setErrorMessage(
           `Information of ${person.name} has already been removed from server`,
         );
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 5000);
         setPersons(persons.filter((p) => p.id !== id));
       });
   };
@@ -120,6 +129,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={errorMessage} />
       <Filter filter={filter} onChange={handleFilterChange} />
       <h2>Add a new</h2>
       <form onSubmit={addName}>

@@ -9,11 +9,6 @@
       "name": "Dan Abramov",
       "number": "12-43-234345",
       "id": "3"
-    },
-    {
-      "name": "maria lopez",
-      "number": "1234567890",
-      "id": "681BEQ2LzvE"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

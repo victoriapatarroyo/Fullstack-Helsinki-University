@@ -71,7 +71,7 @@ const App = () => {
           setTypeMessage("error");
 
           setTimeout(() => {
-            setErrorMessage(null);
+            setMessage(null);
           }, 5000);
           setPersons(persons.filter((p) => p.id !== nameExiste.id));
         });

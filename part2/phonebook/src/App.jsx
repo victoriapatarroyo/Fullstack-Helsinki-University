@@ -10,7 +10,8 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [message, setMessage] = useState("");
+  const [typeMessage, setTypeMessage] = useState(null);
 
   const hook = () => {
     console.log("Efecto");
@@ -64,9 +65,14 @@ const App = () => {
           setNewNumber("");
         })
         .catch((error) => {
-          alert(
+          setMessage(
             `Information of ${nameExiste.name} has already been removed from server`,
           );
+          setTypeMessage("error");
+
+          setTimeout(() => {
+            setErrorMessage(null);
+          }, 5000);
           setPersons(persons.filter((p) => p.id !== nameExiste.id));
         });
 
@@ -79,9 +85,10 @@ const App = () => {
       setNewNumber("");
     });
 
-    setErrorMessage(`${newName} is already to added to phonebook`);
+    setMessage(`${newName} is already to added to phonebook`);
+    setTypeMessage("sucessfull");
     setTimeout(() => {
-      setErrorMessage(null);
+      setMessage(null);
     }, 5000);
     return;
   };
@@ -115,21 +122,24 @@ const App = () => {
       .deletePerson(id)
       .then(() => setPersons(persons.filter((n) => n.id !== id)))
       .catch((error) => {
-        //alert(`Information of ${person.name} has already been removed from server`,);
-        setErrorMessage(
+        setMessage(
           `Information of ${person.name} has already been removed from server`,
         );
+        setTypeMessage("error");
         setTimeout(() => {
-          setErrorMessage(null);
+          setMessage(null);
         }, 5000);
         setPersons(persons.filter((p) => p.id !== id));
       });
+
+    setMessage(`${person.name} has been removed`);
+    setTypeMessage("sucessfull");
   };
 
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={errorMessage} />
+      <Notification message={message} typeMessage={typeMessage} />
       <Filter filter={filter} onChange={handleFilterChange} />
       <h2>Add a new</h2>
       <form onSubmit={addName}>

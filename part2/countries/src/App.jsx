@@ -3,35 +3,80 @@ import axios from "axios";
 
 const BASE_URL = "https://studies.cs.helsinki.fi/restcountries/api";
 
-const CountryDetail = ({ country, onBack }) => (
-  <div>
-    <button onClick={onBack}>← Volver</button>
-    <h2>{country.name.common}</h2>
-    <p>
-      <strong>Capital:</strong> {country.capital?.join(", ")}
-    </p>
-    <p>
-      <strong>Área:</strong> {country.area?.toLocaleString()} km²
-    </p>
-    <p>
-      <strong>Población:</strong> {country.population?.toLocaleString()}
-    </p>
-    <p>
-      <strong>Región:</strong> {country.region}
-    </p>
-    <strong>Idiomas:</strong>
-    <ul>
-      {Object.values(country.languages ?? {}).map((lang) => (
-        <li key={lang}>{lang}</li>
-      ))}
-    </ul>
-    <img
-      src={country.flags?.svg}
-      alt={`Bandera de ${country.name.common}`}
-      width={200}
-    />
-  </div>
-);
+const CountryDetail = ({ country, onBack }) => {
+  const [weather, setWeather] = useState(null);
+  const api_key = import.meta.env.VITE_WEATHER_KEY;
+
+  useEffect(() => {
+    if (!country.capital) return;
+
+    const capital = country.capital[0];
+
+    axios
+      .get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${capital}&appid=${api_key}&units=metric`,
+      )
+      .then((response) => {
+        setWeather(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching weather:", error);
+      });
+  }, [country, api_key]);
+
+  return (
+    // 👈 FALTABA ESTO
+    <div>
+      <button onClick={onBack}>← Volver</button>
+      <h2>{country.name.common}</h2>
+
+      <p>
+        <strong>Capital:</strong> {country.capital?.join(", ")}
+      </p>
+
+      <p>
+        <strong>Área:</strong> {country.area?.toLocaleString()} km²
+      </p>
+
+      <p>
+        <strong>Población:</strong> {country.population?.toLocaleString()}
+      </p>
+
+      <p>
+        <strong>Región:</strong> {country.region}
+      </p>
+
+      <strong>Idiomas:</strong>
+      <ul>
+        {Object.values(country.languages ?? {}).map((lang) => (
+          <li key={lang}>{lang}</li>
+        ))}
+      </ul>
+
+      <img
+        src={country.flags?.svg}
+        alt={`Bandera de ${country.name.common}`}
+        width={200}
+      />
+
+      {weather && (
+        <div>
+          <h3>Clima en {country.capital[0]}</h3>
+          <p>
+            <strong>Temperatura:</strong> {weather.main.temp} °C
+          </p>
+          <p>
+            <strong>Viento:</strong> {weather.wind.speed} m/s
+          </p>
+          <img
+            src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+            alt="weather icon"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const App = () => {
   const [query, setQuery] = useState("");

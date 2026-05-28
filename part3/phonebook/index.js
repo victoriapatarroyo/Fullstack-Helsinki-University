@@ -1,5 +1,6 @@
 //Consulta directorio telefónico
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 
 const generateId = () => {
@@ -7,7 +8,16 @@ const generateId = () => {
   return maxId + 1;
 };
 
+// 👇 token personalizado
+morgan.token("body", (request) => {
+  return JSON.stringify(request.body);
+});
+
 app.use(express.json());
+//app.use(morgan("tiny"));
+app.use(
+  morgan(":method :url :status :res[content-length] - :response-time ms :body"),
+);
 
 let persons = [
   {

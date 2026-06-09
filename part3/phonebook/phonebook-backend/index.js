@@ -7,14 +7,16 @@ const app = express();
 // Middleware
 app.use(express.json());
 
-morgan.token("body", (request) => {
-  return JSON.stringify(request.body);
-});
+// Morgan token para mostrar body en POST
+morgan.token("body", (req) => JSON.stringify(req.body));
 
-app.use(morgan(":method :url :status :res - :response-time ms :body"));
+// Morgan CORRECTO
+app.use(
+  morgan(":method :url :status :res[content-length] - :response-time ms :body"),
+);
 
-// 👇 Servir frontend (React build)
-app.use(express.static("dist"));
+// 👇 Servir frontend (asegúrate que /dist esté en este mismo directorio)
+app.use(express.static(path.join(__dirname, "dist")));
 
 // Datos en memoria
 let persons = [
@@ -45,77 +47,85 @@ const generateId = () => {
   return maxId + 1;
 };
 
-// Endpoints
+// ====================
+// ENDPOINTS API
+// ====================
 
-// Obtener todos los contactos
-app.get("/api/persons", (request, response) => {
-  response.json(persons);
+// Obtener todos
+app.get("/api/persons", (req, res) => {
+  res.json(persons);
 });
 
-// Info general
-app.get("/info", (request, response) => {
+// Info
+app.get("/info", (req, res) => {
   const total = persons.length;
   const date = new Date();
 
-  response.send(`     <p>Phonebook has info for ${total} people</p>     <p>${date}</p>
+  res.send(`
+    <p>Phonebook has info for ${total} people</p>
+    <p>${date}</p>
   `);
 });
 
-// Obtener un contacto
-app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
+// Obtener uno
+app.get("/api/persons/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const person = persons.find((p) => p.id === id);
 
   if (person) {
-    response.json(person);
+    res.json(person);
   } else {
-    response.status(404).end();
+    res.status(404).end();
   }
 });
 
-// Eliminar contacto
-app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((person) => person.id !== id);
+// Eliminar
+app.delete("/api/persons/:id", (req, res) => {
+  const id = Number(req.params.id);
+  persons = persons.filter((p) => p.id !== id);
 
-  response.status(204).end();
+  res.status(204).end();
 });
 
-// Crear contacto
-app.post("/api/persons", (request, response) => {
-  const body = request.body;
+// Crear
+app.post("/api/persons", (req, res) => {
+  const body = req.body;
 
   if (!body.name || !body.number) {
-    return response.status(400).json({
+    return res.status(400).json({
       error: "name or number missing",
     });
   }
 
-  const nameExist = persons.some((person) => person.name === body.name);
+  const nameExists = persons.some((p) => p.name === body.name);
 
-  if (nameExist) {
-    return response.status(400).json({
+  if (nameExists) {
+    return res.status(400).json({
       error: "name must be unique",
     });
   }
 
-  const person = {
+  const newPerson = {
     id: generateId(),
     name: body.name,
     number: body.number,
   };
 
-  persons = persons.concat(person);
-  response.status(201).json(person);
+  persons = persons.concat(newPerson);
+
+  res.status(201).json(newPerson);
 });
 
-// 👇 Manejo de rutas SPA (React)
-// 👇 Manejo de rutas SPA (React) — CORRECTO
-app.use((request, response) => {
-  response.sendFile(path.resolve(__dirname, "dist", "index.html"));
+// ====================
+// SPA FALLBACK (React)
+// ====================
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
-// Puerto dinámico para Render
+// ====================
+// SERVER
+// ====================
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {

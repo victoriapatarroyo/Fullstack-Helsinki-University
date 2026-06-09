@@ -1,24 +1,22 @@
-//Consulta directorio telefónico
 const express = require("express");
 const morgan = require("morgan");
+const path = require("path");
+
 const app = express();
 
-const generateId = () => {
-  const maxId = persons.length > 0 ? Math.max(...persons.map((p) => p.id)) : 0;
-  return maxId + 1;
-};
+// Middleware
+app.use(express.json());
 
-// 👇 token personalizado
 morgan.token("body", (request) => {
   return JSON.stringify(request.body);
 });
 
-app.use(express.json());
-//app.use(morgan("tiny"));
-app.use(
-  morgan(":method :url :status :res[content-length] - :response-time ms :body"),
-);
+app.use(morgan(":method :url :status :res - :response-time ms :body"));
 
+// 👇 Servir frontend (React build)
+app.use(express.static("dist"));
+
+// Datos en memoria
 let persons = [
   {
     id: 1,
@@ -42,23 +40,28 @@ let persons = [
   },
 ];
 
-//Endopint lista todos los contactos
+const generateId = () => {
+  const maxId = persons.length > 0 ? Math.max(...persons.map((p) => p.id)) : 0;
+  return maxId + 1;
+};
+
+// Endpoints
+
+// Obtener todos los contactos
 app.get("/api/persons", (request, response) => {
   response.json(persons);
 });
 
-//Endpoint que consulta número de registros en la agenda y hora de consulta
+// Info general
 app.get("/info", (request, response) => {
   const total = persons.length;
   const date = new Date();
 
-  response.send(`
-    <p>Phonebook has info for ${total} people</p>
-    <p>${date}</p>
+  response.send(`     <p>Phonebook has info for ${total} people</p>     <p>${date}</p>
   `);
 });
 
-//Endopint listar información de un solo contacto
+// Obtener un contacto
 app.get("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
   const person = persons.find((person) => person.id === id);
@@ -66,11 +69,11 @@ app.get("/api/persons/:id", (request, response) => {
   if (person) {
     response.json(person);
   } else {
-    response.status(400).end();
+    response.status(404).end();
   }
 });
 
-//Endopint para eliminar un contacto
+// Eliminar contacto
 app.delete("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
   persons = persons.filter((person) => person.id !== id);
@@ -78,7 +81,7 @@ app.delete("/api/persons/:id", (request, response) => {
   response.status(204).end();
 });
 
-//Endopint para ingresar nuevo contacto
+// Crear contacto
 app.post("/api/persons", (request, response) => {
   const body = request.body;
 
@@ -106,7 +109,14 @@ app.post("/api/persons", (request, response) => {
   response.status(201).json(person);
 });
 
-const PORT = 3001;
+// 👇 Manejo de rutas SPA (React)
+app.get("*", (request, response) => {
+  response.sendFile(path.resolve(__dirname, "dist", "index.html"));
+});
+
+// Puerto dinámico para Render
+const PORT = process.env.PORT || 3001;
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

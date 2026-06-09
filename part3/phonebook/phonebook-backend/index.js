@@ -110,10 +110,9 @@ app.post("/api/persons", (request, response) => {
 });
 
 // 👇 Manejo de rutas SPA (React)
-app.get("*", (request, response) => {
+app.get("/*", (request, response) => {
   response.sendFile(path.resolve(__dirname, "dist", "index.html"));
 });
-
 // Puerto dinámico para Render
 const PORT = process.env.PORT || 3001;
 

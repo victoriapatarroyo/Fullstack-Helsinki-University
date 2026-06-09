@@ -1,7 +1,6 @@
 import axios from "axios";
-//const baseUrl =
-//  "https://fullstack-helsinki-university-o059.onrender.com/api/persons";
-const baseUrl = "/api/persons";
+const baseUrl =
+  "https://fullstack-helsinki-university-o059.onrender.com/api/persons";
 
 const getAll = () => {
   const request = axios.get(baseUrl);

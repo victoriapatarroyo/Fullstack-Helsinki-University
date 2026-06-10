@@ -22,7 +22,7 @@ app.use(express.static(path.join(__dirname, "dist")));
 let persons = [
   {
     id: 1,
-    name: "Arto Hellas prueba",
+    name: "Arto Hellas",
     number: "040-123456",
   },
   {

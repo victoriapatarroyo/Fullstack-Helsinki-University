@@ -1,25 +1,32 @@
+require("dotenv").config();
 const express = require("express");
-const morgan = require("morgan");
-const path = require("path");
-
 const app = express();
+const cors = require("cors");
+const path = require("path");
+const mongoose = require("mongoose");
 
-// Middleware
+const Person = require("./models/person");
+
+// =======================
+// CONFIG
+// =======================
+const PORT = process.env.PORT || 3001;
+const MONGODB_URI = process.env.MONGODB_URI;
+
+// Parámetros opcionales (seed)
+const shouldSeed = process.argv[2] === "seed";
+
+// =======================
+// MIDDLEWARES
+// =======================
+app.use(cors());
 app.use(express.json());
-
-// Morgan token para mostrar body en POST
-morgan.token("body", (req) => JSON.stringify(req.body));
-
-// Morgan CORRECTO
-app.use(
-  morgan(":method :url :status :res[content-length] - :response-time ms :body"),
-);
-
-// 👇 Servir frontend (asegúrate que /dist esté en este mismo directorio)
 app.use(express.static(path.join(__dirname, "dist")));
 
-// Datos en memoria
-let persons = [
+// =======================
+// DATOS JSON (SEED)
+// =======================
+const persons = [
   {
     id: 1,
     name: "Arto Hellas",
@@ -42,9 +49,32 @@ let persons = [
   },
 ];
 
-const generateId = () => {
-  const maxId = persons.length > 0 ? Math.max(...persons.map((p) => p.id)) : 0;
-  return maxId + 1;
+// =======================
+// CONEXIÓN + SERVER
+// =======================
+const start = async () => {
+  try {
+    await mongoose.connect(MONGODB_URI);
+    console.log("✅ Conectado a MongoDB");
+
+    // 🌱 SEED opcional
+    if (shouldSeed) {
+      const count = await Person.countDocuments();
+
+      if (count === 0) {
+        const result = await Person.insertMany(persons);
+        console.log("🌱 Datos insertados:", result.length);
+      } else {
+        console.log("⚠️ La base ya tiene datos, no se insertó seed");
+      }
+    }
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("❌ Error al conectar:", err.message);
+  }
 };
 
 // ====================
@@ -52,7 +82,8 @@ const generateId = () => {
 // ====================
 
 // Obtener todos
-app.get("/api/persons", (req, res) => {
+app.get("/api/persons", async (req, res) => {
+  const persons = await Person.find({});
   res.json(persons);
 });
 
@@ -69,7 +100,7 @@ app.get("/info", (req, res) => {
 
 // Obtener uno
 app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
+  const id = Person(req.params.id);
   const person = persons.find((p) => p.id === id);
 
   if (person) {
@@ -116,18 +147,14 @@ app.post("/api/persons", (req, res) => {
   res.status(201).json(newPerson);
 });
 
-// ====================
-// SPA FALLBACK (React)
-// ====================
+// =======================
+// FALLBACK FRONTEND
+// =======================
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
-// ====================
-// SERVER
-// ====================
-const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// =======================
+// START
+// =======================
+start();

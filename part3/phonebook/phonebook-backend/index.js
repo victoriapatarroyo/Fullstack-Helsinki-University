@@ -119,7 +119,7 @@ app.delete("/api/persons/:id", (req, res) => {
 });
 
 // Crear
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", async (req, res) => {
   const body = req.body;
 
   if (!body.name || !body.number) {
@@ -128,23 +128,14 @@ app.post("/api/persons", (req, res) => {
     });
   }
 
-  const nameExists = persons.some((p) => p.name === body.name);
-
-  if (nameExists) {
-    return res.status(400).json({
-      error: "name must be unique",
-    });
-  }
-
-  const newPerson = {
-    id: generateId(),
+  const person = new Person({
     name: body.name,
     number: body.number,
-  };
+  });
 
-  persons = persons.concat(newPerson);
+  const savedPerson = await person.save();
 
-  res.status(201).json(newPerson);
+  res.status(201).json(savedPerson);
 });
 
 // =======================

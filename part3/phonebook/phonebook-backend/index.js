@@ -111,8 +111,6 @@ app.get("/api/persons/:id", (req, res) => {
 });
 
 // Eliminar
-//const mongoose = require("mongoose");
-
 app.delete("/api/persons/:id", async (req, res, next) => {
   try {
     const id = req.params.id;

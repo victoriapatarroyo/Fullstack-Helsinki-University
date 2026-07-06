@@ -13,19 +13,6 @@ const App = () => {
   const [message, setMessage] = useState("");
   const [typeMessage, setTypeMessage] = useState(null);
 
-  /*const hook = () => {
-    console.log("Efecto");
-    axios
-      .get("http://localhost:3001/persons")
-      .then((response) => {
-        console.log("promesa ok");
-        setPersons(response.data);
-      })
-      .catch((error) => {
-        console.error("error al obtener datos", error);
-      });
-  };*/
-
   //useEffect(hook, []);
   useEffect(() => {
     personService.getAll().then((initialPersons) => {

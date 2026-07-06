@@ -111,12 +111,15 @@ app.get("/api/persons/:id", (req, res) => {
 });
 
 // Eliminar
+const mongoose = require("mongoose");
+
 app.delete("/api/persons/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
 
-    if (!id) {
-      return res.status(400).json({ error: "id missing" });
+    // ✅ Validación correcta
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "malformatted id" });
     }
 
     await Person.findByIdAndDelete(id);

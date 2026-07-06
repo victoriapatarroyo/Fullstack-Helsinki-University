@@ -13,7 +13,7 @@ const App = () => {
   const [message, setMessage] = useState("");
   const [typeMessage, setTypeMessage] = useState(null);
 
-  const hook = () => {
+  /*const hook = () => {
     console.log("Efecto");
     axios
       .get("http://localhost:3001/persons")
@@ -24,7 +24,7 @@ const App = () => {
       .catch((error) => {
         console.error("error al obtener datos", error);
       });
-  };
+  };*/
 
   //useEffect(hook, []);
   useEffect(() => {
@@ -86,7 +86,7 @@ const App = () => {
     });
 
     setMessage(`${newName} is already to added to phonebook`);
-    setTypeMessage("sucessfull");
+    setTypeMessage("sucessful");
     setTimeout(() => {
       setMessage(null);
     }, 5000);
@@ -112,6 +112,12 @@ const App = () => {
 
   const deleteNameOf = (id) => {
     const person = persons.find((n) => n.id === id);
+
+    if (!person) {
+      console.error("Persona no encontrada");
+      return;
+    }
+
     const confirmDelete = window.confirm(`Delete ${person.name} ?`);
 
     if (!confirmDelete) {
@@ -120,20 +126,27 @@ const App = () => {
 
     personService
       .deletePerson(id)
-      .then(() => setPersons(persons.filter((n) => n.id !== id)))
+      .then(() => {
+        setPersons(persons.filter((n) => n.id !== id));
+        setMessage(`${person.name} has been removed`);
+        setTypeMessage("sucessful");
+
+        setTimeout(() => {
+          setMessage(null);
+        }, 5000);
+      })
       .catch((error) => {
         setMessage(
           `Information of ${person.name} has already been removed from server`,
         );
         setTypeMessage("error");
+
         setTimeout(() => {
           setMessage(null);
         }, 5000);
+
         setPersons(persons.filter((p) => p.id !== id));
       });
-
-    setMessage(`${person.name} has been removed`);
-    setTypeMessage("sucessfull");
   };
 
   return (

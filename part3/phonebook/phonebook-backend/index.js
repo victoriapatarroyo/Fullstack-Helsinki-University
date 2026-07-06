@@ -111,11 +111,13 @@ app.get("/api/persons/:id", (req, res) => {
 });
 
 // Eliminar
-app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter((p) => p.id !== id);
-
-  res.status(204).end();
+app.delete("/api/persons/:id", async (req, res, next) => {
+  try {
+    await Person.findByIdAndDelete(req.params.id);
+    res.status(204).end;
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Crear

@@ -113,8 +113,14 @@ app.get("/api/persons/:id", (req, res) => {
 // Eliminar
 app.delete("/api/persons/:id", async (req, res, next) => {
   try {
-    await Person.findByIdAndDelete(req.params.id);
-    res.status(204).end;
+    const id = req.params.id;
+
+    if (!id) {
+      return res.status(400).json({ error: "id missing" });
+    }
+
+    await Person.findByIdAndDelete(id);
+    res.status(204).end();
   } catch (error) {
     next(error);
   }

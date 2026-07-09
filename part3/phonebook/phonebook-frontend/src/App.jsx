@@ -10,7 +10,7 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filter, setFilter] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(null);
   const [typeMessage, setTypeMessage] = useState(null);
 
   useEffect(() => {
@@ -27,7 +27,6 @@ const App = () => {
       number: newNumber,
     };
 
-    //Valido si existe el elemento
     const nameExiste = persons.find(
       (person) => person.name.toLowerCase() === newName.toLowerCase(),
     );
@@ -49,38 +48,56 @@ const App = () => {
           );
           setNewName("");
           setNewNumber("");
+
+          setMessage(`${returnedPerson.name} updated`);
+          setTypeMessage("successful");
+
+          setTimeout(() => {
+            setMessage(null);
+          }, 5000);
         })
         .catch((error) => {
           setMessage(
-            `Information of ${nameExiste.name} has already been removed from server`,
+            error.response?.data?.error ||
+              `Information of ${nameExiste.name} has already been removed from server`,
           );
           setTypeMessage("error");
 
           setTimeout(() => {
             setMessage(null);
           }, 5000);
+
           setPersons(persons.filter((p) => p.id !== nameExiste.id));
         });
 
       return;
     }
 
-    personService.create(nameObject).then((returnedPerson) => {
-      setPersons(persons.concat(returnedPerson));
-      setNewName("");
-      setNewNumber("");
-    });
+    personService
+      .create(nameObject)
+      .then((returnedPerson) => {
+        setPersons(persons.concat(returnedPerson));
+        setNewName("");
+        setNewNumber("");
 
-    setMessage(`${newName} is already to added to phonebook`);
-    setTypeMessage("sucessful");
-    setTimeout(() => {
-      setMessage(null);
-    }, 5000);
-    return;
+        setMessage(`${returnedPerson.name} added to phonebook`);
+        setTypeMessage("successful");
+
+        setTimeout(() => {
+          setMessage(null);
+        }, 5000);
+      })
+      .catch((error) => {
+        setMessage(error.response?.data?.error);
+        setTypeMessage("error");
+
+        setTimeout(() => {
+          setMessage(null);
+        }, 5000);
+      });
   };
 
   const handleNameChange = (event) => {
-    //console.log(event.target.value);
     setNewName(event.target.value);
   };
 
@@ -114,14 +131,15 @@ const App = () => {
       .deletePerson(id)
       .then(() => {
         setPersons(persons.filter((n) => n.id !== id));
+
         setMessage(`${person.name} has been removed`);
-        setTypeMessage("sucessful");
+        setTypeMessage("successful");
 
         setTimeout(() => {
           setMessage(null);
         }, 5000);
       })
-      .catch((error) => {
+      .catch(() => {
         setMessage(
           `Information of ${person.name} has already been removed from server`,
         );
@@ -138,8 +156,11 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+
       <Notification message={message} typeMessage={typeMessage} />
+
       <Filter filter={filter} onChange={handleFilterChange} />
+
       <h2>Add a new</h2>
       <form onSubmit={addName}>
         <div>
@@ -150,6 +171,7 @@ const App = () => {
         </div>
         <button type="submit">Save</button>
       </form>
+
       <h2>Numbers</h2>
       <ul>
         {namesToShow.map((person) => (
@@ -158,7 +180,7 @@ const App = () => {
             name={person}
             deleteName={() => deleteNameOf(person.id)}
           />
-        ))}{" "}
+        ))}
       </ul>
     </div>
   );

@@ -13,15 +13,22 @@ const url = `mongodb+srv://fullstack:${password}@primercluster.awfcttt.mongodb.n
 
 mongoose.set("strictQuery", false);
 
-// ✅ Definición del esquema y modelo
+// Definición del esquema y modelo
 const numberSchema = new mongoose.Schema({
-  name: String,
-  number: String,
+  name: {
+    type: String,
+    minLength: 3,
+    requiered: true,
+  },
+  number: {
+    type: String,
+    requiered: true,
+  },
 });
 
 const Number = mongoose.model("Number", numberSchema);
 
-// ✅ Conexión + guardado asegurando flujo correcto
+// Conexión + guardado asegurando flujo correcto
 mongoose
   .connect(url)
   .then(() => {
@@ -38,7 +45,7 @@ mongoose
       });
     }
 
-    // ➕ Caso 2: guardar nuevo registro
+    // Caso 2: guardar nuevo registro
     const name = process.argv[3];
     const numberArg = process.argv[4];
 

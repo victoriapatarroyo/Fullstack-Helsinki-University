@@ -13,7 +13,6 @@ const App = () => {
   const [message, setMessage] = useState("");
   const [typeMessage, setTypeMessage] = useState(null);
 
-  //useEffect(hook, []);
   useEffect(() => {
     personService.getAll().then((initialPersons) => {
       setPersons(initialPersons);

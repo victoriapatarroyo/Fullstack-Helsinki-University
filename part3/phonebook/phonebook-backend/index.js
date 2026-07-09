@@ -1,134 +1,48 @@
-require("dotenv").config();
 const express = require("express");
-const app = express();
-const cors = require("cors");
-const path = require("path");
 const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
 
 const Person = require("./models/person");
 
-// =======================
-// CONFIG
-// =======================
-const PORT = process.env.PORT || 3001;
-const MONGODB_URI = process.env.MONGODB_URI;
+const app = express();
 
-// Parámetros opcionales (seed)
-const shouldSeed = process.argv[2] === "seed";
-
-// =======================
-// MIDDLEWARES
-// =======================
+// Middleware básicos
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "dist")));
+app.use(express.static("dist"));
 
-// =======================
-// DATOS JSON (SEED)
-// =======================
-const persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
+// Conexión a MongoDB
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log("Conectado a MongoDB");
+  })
+  .catch((error) => {
+    console.error("Error conectando a MongoDB:", error.message);
+  });
 
-// =======================
-// CONEXIÓN + SERVER
-// =======================
-const start = async () => {
-  try {
-    await mongoose.connect(MONGODB_URI);
-    console.log("✅ Conectado a MongoDB");
+// Rutas
 
-    // 🌱 SEED opcional
-    if (shouldSeed) {
-      const count = await Person.countDocuments();
+app.get("/api/persons", (req, res) => {
+  Person.find({}).then((persons) => {
+    res.json(persons);
+  });
+});
 
-      if (count === 0) {
-        const result = await Person.insertMany(persons);
-        console.log("🌱 Datos insertados:", result.length);
+app.get("/api/persons/:id", (req, res, next) => {
+  Person.findById(req.params.id)
+    .then((person) => {
+      if (person) {
+        res.json(person);
       } else {
-        console.log("⚠️ La base ya tiene datos, no se insertó seed");
+        res.status(404).end();
       }
-    }
-
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-  } catch (err) {
-    console.error("❌ Error al conectar:", err.message);
-  }
-};
-
-// ====================
-// ENDPOINTS API
-// ====================
-
-// Obtener todos
-app.get("/api/persons", async (req, res) => {
-  const persons = await Person.find({});
-  res.json(persons);
+    })
+    .catch((error) => next(error));
 });
 
-// Info
-app.get("/info", (req, res) => {
-  const total = persons.length;
-  const date = new Date();
-
-  res.send(`
-    <p>Phonebook has info for ${total} people</p>
-    <p>${date}</p>
-  `);
-});
-
-// Obtener uno
-app.get("/api/persons/:id", (req, res) => {
-  const id = Person(req.params.id);
-  const person = persons.find((p) => p.id === id);
-
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
-});
-
-// Eliminar
-app.delete("/api/persons/:id", async (req, res, next) => {
-  try {
-    const id = req.params.id;
-
-    // ✅ Validación correcta
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: "malformatted id" });
-    }
-
-    await Person.findByIdAndDelete(id);
-    res.status(204).end();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Crear
-app.post("/api/persons", async (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
 
   if (!body.name || !body.number) {
@@ -142,19 +56,64 @@ app.post("/api/persons", async (req, res) => {
     number: body.number,
   });
 
-  const savedPerson = await person.save();
-
-  res.status(201).json(savedPerson);
+  person
+    .save()
+    .then((savedPerson) => {
+      res.json(savedPerson);
+    })
+    .catch((error) => next(error));
 });
 
-// =======================
-// FALLBACK FRONTEND
-// =======================
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+app.put("/api/persons/:id", (req, res, next) => {
+  const { name, number } = req.body;
+
+  const person = { name, number };
+
+  Person.findByIdAndUpdate(req.params.id, person, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
+    .then((updatedPerson) => {
+      res.json(updatedPerson);
+    })
+    .catch((error) => next(error));
 });
 
-// =======================
-// START
-// =======================
-start();
+app.delete("/api/persons/:id", (req, res, next) => {
+  Person.findByIdAndDelete(req.params.id)
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch((error) => next(error));
+});
+
+// Middleware para endpoints desconocidos
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: "unknown endpoint" });
+};
+
+// Middleware de manejo de errores
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" });
+  }
+
+  if (error.name === "ValidationError") {
+    return res.status(400).json({ error: error.message });
+  }
+
+  next(error);
+};
+
+// Orden importante
+app.use(unknownEndpoint);
+app.use(errorHandler);
+
+// Puerto
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

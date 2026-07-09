@@ -31,14 +31,13 @@ const App = () => {
       (person) => person.name.toLowerCase() === newName.toLowerCase(),
     );
 
+    // 🔁 UPDATE
     if (nameExiste) {
       const confirmUpdate = window.confirm(
         `${newName} is already added to phonebook, replace the old number with a new one?`,
       );
 
-      if (!confirmUpdate) {
-        return;
-      }
+      if (!confirmUpdate) return;
 
       personService
         .update(nameExiste.id, nameObject)
@@ -52,9 +51,7 @@ const App = () => {
           setMessage(`${returnedPerson.name} updated`);
           setTypeMessage("successful");
 
-          setTimeout(() => {
-            setMessage(null);
-          }, 5000);
+          setTimeout(() => setMessage(null), 5000);
         })
         .catch((error) => {
           setMessage(
@@ -63,9 +60,7 @@ const App = () => {
           );
           setTypeMessage("error");
 
-          setTimeout(() => {
-            setMessage(null);
-          }, 5000);
+          setTimeout(() => setMessage(null), 5000);
 
           setPersons(persons.filter((p) => p.id !== nameExiste.id));
         });
@@ -73,6 +68,7 @@ const App = () => {
       return;
     }
 
+    // CREATE
     personService
       .create(nameObject)
       .then((returnedPerson) => {
@@ -83,31 +79,27 @@ const App = () => {
         setMessage(`${returnedPerson.name} added to phonebook`);
         setTypeMessage("successful");
 
-        setTimeout(() => {
-          setMessage(null);
-        }, 5000);
+        setTimeout(() => setMessage(null), 5000);
       })
       .catch((error) => {
-        setMessage(error.response?.data?.error);
+        const errorMsg = error.response?.data?.error || "Something went wrong";
+
+        // Opcional: limpiar mensaje feo de mongoose
+        if (errorMsg.includes("`name`")) {
+          setMessage("Name must be at least 3 characters long");
+        } else {
+          setMessage(errorMsg);
+        }
+
         setTypeMessage("error");
 
-        setTimeout(() => {
-          setMessage(null);
-        }, 5000);
+        setTimeout(() => setMessage(null), 5000);
       });
   };
 
-  const handleNameChange = (event) => {
-    setNewName(event.target.value);
-  };
-
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value);
-  };
-
-  const handleFilterChange = (event) => {
-    setFilter(event.target.value);
-  };
+  const handleNameChange = (event) => setNewName(event.target.value);
+  const handleNumberChange = (event) => setNewNumber(event.target.value);
+  const handleFilterChange = (event) => setFilter(event.target.value);
 
   const namesToShow = persons.filter((person) =>
     person.name.toLowerCase().includes(filter.toLowerCase()),
@@ -116,16 +108,10 @@ const App = () => {
   const deleteNameOf = (id) => {
     const person = persons.find((n) => n.id === id);
 
-    if (!person) {
-      console.error("Persona no encontrada");
-      return;
-    }
+    if (!person) return;
 
-    const confirmDelete = window.confirm(`Delete ${person.name} ?`);
-
-    if (!confirmDelete) {
-      return;
-    }
+    const confirmDelete = window.confirm(`Delete ${person.name}?`);
+    if (!confirmDelete) return;
 
     personService
       .deletePerson(id)
@@ -135,9 +121,7 @@ const App = () => {
         setMessage(`${person.name} has been removed`);
         setTypeMessage("successful");
 
-        setTimeout(() => {
-          setMessage(null);
-        }, 5000);
+        setTimeout(() => setMessage(null), 5000);
       })
       .catch(() => {
         setMessage(
@@ -145,9 +129,7 @@ const App = () => {
         );
         setTypeMessage("error");
 
-        setTimeout(() => {
-          setMessage(null);
-        }, 5000);
+        setTimeout(() => setMessage(null), 5000);
 
         setPersons(persons.filter((p) => p.id !== id));
       });

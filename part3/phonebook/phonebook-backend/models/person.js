@@ -7,17 +7,19 @@ const personSchema = new mongoose.Schema({
     required: true,
   },
   number: {
-type: String,
+    type: String,
     required: true,
     minLength: 8,
     validate: {
       validator: function (value) {
         // Expresión regular:
         // 2 o 3 números + "-" + solo números
-        return /^\d{2,3}-\d+$/.test(value)
+        return /^\d{2,3}-\d+$/.test(value);
       },
-      message: props =>
-        `${props.value} no es un número válido. Formato esperado: XX-XXXXXXX o XXX-XXXXXXX`,  },
+      message: (props) =>
+        `${props.value} no es un número válido. Formato esperado: XX-XXXXXXX o XXX-XXXXXXX`,
+    },
+  },
 });
 
 personSchema.set("toJSON", {

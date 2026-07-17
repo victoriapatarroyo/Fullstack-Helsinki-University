@@ -19,6 +19,23 @@ const App = () => {
     });
   }, []);
 
+  const showMessage = (msg, type = "successful") => {
+    setMessage(msg);
+    setTypeMessage(type);
+    setTimeout(() => setMessage(null), 5000);
+  };
+
+  const handleError = (error) => {
+    let errorMsg = error.response?.data?.error || "Something went wrong";
+
+    // Limpia mensajes de Mongoose
+    if (errorMsg.includes("validation failed:")) {
+      errorMsg = errorMsg.split("validation failed:")[1];
+    }
+
+    showMessage(errorMsg.trim(), "error");
+  };
+
   const addName = (event) => {
     event.preventDefault();
 
@@ -27,12 +44,12 @@ const App = () => {
       number: newNumber,
     };
 
-    const nameExiste = persons.find(
+    const existingPerson = persons.find(
       (person) => person.name.toLowerCase() === newName.toLowerCase(),
     );
 
     // 🔁 UPDATE
-    if (nameExiste) {
+    if (existingPerson) {
       const confirmUpdate = window.confirm(
         `${newName} is already added to phonebook, replace the old number with a new one?`,
       );
@@ -40,35 +57,30 @@ const App = () => {
       if (!confirmUpdate) return;
 
       personService
-        .update(nameExiste.id, nameObject)
+        .update(existingPerson.id, nameObject)
         .then((returnedPerson) => {
           setPersons(
-            persons.map((p) => (p.id !== nameExiste.id ? p : returnedPerson)),
+            persons.map((p) =>
+              p.id !== existingPerson.id ? p : returnedPerson,
+            ),
           );
+
           setNewName("");
           setNewNumber("");
 
-          setMessage(`${returnedPerson.name} updated`);
-          setTypeMessage("successful");
-
-          setTimeout(() => setMessage(null), 5000);
+          showMessage(`${returnedPerson.name} updated`);
         })
         .catch((error) => {
-          setMessage(
-            error.response?.data?.error ||
-              `Information of ${nameExiste.name} has already been removed from server`,
-          );
-          setTypeMessage("error");
+          handleError(error);
 
-          setTimeout(() => setMessage(null), 5000);
-
-          setPersons(persons.filter((p) => p.id !== nameExiste.id));
+          // Si ya no existe en backend
+          setPersons(persons.filter((p) => p.id !== existingPerson.id));
         });
 
       return;
     }
 
-    // CREATE
+    // ➕ CREATE
     personService
       .create(nameObject)
       .then((returnedPerson) => {
@@ -76,24 +88,10 @@ const App = () => {
         setNewName("");
         setNewNumber("");
 
-        setMessage(`${returnedPerson.name} added to phonebook`);
-        setTypeMessage("successful");
-
-        setTimeout(() => setMessage(null), 5000);
+        showMessage(`${returnedPerson.name} added to phonebook`);
       })
       .catch((error) => {
-        const errorMsg = error.response?.data?.error || "Something went wrong";
-
-        // Opcional: limpiar mensaje feo de mongoose
-        if (errorMsg.includes("`name`")) {
-          setMessage("Name must be at least 3 characters long");
-        } else {
-          setMessage(errorMsg);
-        }
-
-        setTypeMessage("error");
-
-        setTimeout(() => setMessage(null), 5000);
+        handleError(error);
       });
   };
 
@@ -106,8 +104,7 @@ const App = () => {
   );
 
   const deleteNameOf = (id) => {
-    const person = persons.find((n) => n.id === id);
-
+    const person = persons.find((p) => p.id === id);
     if (!person) return;
 
     const confirmDelete = window.confirm(`Delete ${person.name}?`);
@@ -116,20 +113,14 @@ const App = () => {
     personService
       .deletePerson(id)
       .then(() => {
-        setPersons(persons.filter((n) => n.id !== id));
-
-        setMessage(`${person.name} has been removed`);
-        setTypeMessage("successful");
-
-        setTimeout(() => setMessage(null), 5000);
+        setPersons(persons.filter((p) => p.id !== id));
+        showMessage(`${person.name} has been removed`);
       })
       .catch(() => {
-        setMessage(
+        showMessage(
           `Information of ${person.name} has already been removed from server`,
+          "error",
         );
-        setTypeMessage("error");
-
-        setTimeout(() => setMessage(null), 5000);
 
         setPersons(persons.filter((p) => p.id !== id));
       });

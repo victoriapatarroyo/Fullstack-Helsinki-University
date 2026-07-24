@@ -6,9 +6,6 @@ if (process.argv.length < 3) {
 }
 
 const password = process.argv[2];
-//const nameArg = process.argv[3];
-//const numberArg = process.argv[4];
-
 const url = `mongodb+srv://fullstack:${password}@primercluster.awfcttt.mongodb.net/phonebookApp?retryWrites=true&w=majority`;
 
 mongoose.set("strictQuery", false);

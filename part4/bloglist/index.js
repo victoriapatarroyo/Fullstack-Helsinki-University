@@ -1,19 +1,22 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
 
-const blogSchema = new mongoose.Schema({
-  title: String,
-  author: String,
-  url: String,
-  likes: Number,
-});
+const Blog = require("./models/blog");
 
-const Blog = mongoose.model("Blog", blogSchema);
+const mongoUrl = process.env.MONGODB_URI;
 
-const mongoUrl = "mongodb://localhost/bloglist";
-mongoose.connect(mongoUrl);
+// Log para verificación de conexión
+mongoose
+  .connect(mongoUrl)
+  .then(() => {
+    console.log("Connected to MongoDB ✅");
+  })
+  .catch((error) => {
+    console.log("Error connecting to MongoDB ❌:", error.message);
+  });
 
 app.use(cors());
 app.use(express.json());

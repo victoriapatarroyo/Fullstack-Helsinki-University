@@ -99,3 +99,33 @@ describe("most blogs", () => {
     });
   });
 });
+
+describe("most likes", () => {
+  const blogs = [
+    {
+      title: "React patterns",
+      author: "Michael Chan",
+      likes: 7,
+    },
+    {
+      title: "Go To Statement Considered Harmful",
+      author: "Edsger W. Dijkstra",
+      likes: 5,
+    },
+    {
+      title: "Canonical string reduction",
+      author: "Edsger W. Dijkstra",
+      likes: 12,
+    },
+  ];
+
+  test("returns author with most likes", () => {
+    const result = listHelper.mostLikes(blogs);
+    console.log(result);
+
+    assert.deepStrictEqual(result, {
+      author: "Edsger W. Dijkstra",
+      likes: 17,
+    });
+  });
+});

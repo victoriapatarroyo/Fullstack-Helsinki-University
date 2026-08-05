@@ -36,3 +36,66 @@ describe("total likes", () => {
     assert.strictEqual(result, 6);
   });
 });
+
+describe("favorite blog", () => {
+  const blogs = [
+    {
+      title: "React patterns",
+      author: "Michael Chan",
+      url: "https://reactpatterns.com/",
+      likes: 7,
+    },
+    {
+      title: "Go To Statement Considered Harmful",
+      author: "Edsger W. Dijkstra",
+      url: "http://example.com",
+      likes: 5,
+    },
+    {
+      title: "Canonical string reduction",
+      author: "Edsger W. Dijkstra",
+      url: "http://example.com",
+      likes: 12,
+    },
+  ];
+
+  test("returns the blog with most likes", () => {
+    const result = listHelper.favoriteBlog(blogs);
+
+    console.log(result);
+
+    assert.deepStrictEqual(result, {
+      title: "Canonical string reduction",
+      author: "Edsger W. Dijkstra",
+      likes: 12,
+    });
+  });
+});
+
+describe("most blogs", () => {
+  const blogs = [
+    {
+      title: "React patterns",
+      author: "Michael Chan",
+    },
+    {
+      title: "Go To Statement Considered Harmful",
+      author: "Edsger W. Dijkstra",
+    },
+    {
+      title: "Canonical string reduction",
+      author: "Edsger W. Dijkstra",
+    },
+  ];
+
+  test("returns author with most blogs", () => {
+    const result = listHelper.mostBlogs(blogs);
+
+    console.log(result);
+
+    assert.deepStrictEqual(result, {
+      author: "Edsger W. Dijkstra",
+      blogs: 2,
+    });
+  });
+});

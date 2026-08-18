@@ -1,6 +1,7 @@
-const { test } = require("node:test");
+const { test, after } = require("node:test"); // 👈 Agregado 'after'
 const assert = require("node:assert");
 const supertest = require("supertest");
+const mongoose = require("mongoose"); // 👈 Agregado 'mongoose'
 
 const app = require("../app");
 
@@ -13,4 +14,9 @@ test("blogs are returned as json", async () => {
     .expect("Content-Type", /application\/json/);
 
   assert.ok(Array.isArray(response.body));
+});
+
+// 👈 Cierra la conexión a la base de datos al finalizar
+after(async () => {
+  await mongoose.connection.close();
 });

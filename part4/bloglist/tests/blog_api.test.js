@@ -16,6 +16,12 @@ test("blogs are returned as json", async () => {
   assert.ok(Array.isArray(response.body));
 });
 
+test("the unique identifier property is named id", async () => {
+  const response = await api.get("/api/blogs");
+  const blog = response.body[0];
+  assert.notStrictEqual(blog.id, undefined);
+});
+
 // 👈 Cierra la conexión a la base de datos al finalizar
 after(async () => {
   await mongoose.connection.close();

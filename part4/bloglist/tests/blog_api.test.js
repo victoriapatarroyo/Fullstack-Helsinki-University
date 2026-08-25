@@ -63,6 +63,24 @@ test("a blog without likes defaults to zero", async () => {
   assert.strictEqual(newBlog.likes, 0);
 });
 
+test("a blog without title or url is not added", async () => {
+  await api
+    .post("/api/blogs")
+    .send({
+      author: "Test Author",
+      url: "https://example.com",
+    })
+    .expect(400);
+
+  await api
+    .post("/api/blogs")
+    .send({
+      title: "A blog without URL",
+      author: "Test Author",
+    })
+    .expect(400);
+});
+
 // 👈 Cierra la conexión a la base de datos al finalizar
 after(async () => {
   await mongoose.connection.close();

@@ -22,6 +22,30 @@ test("the unique identifier property is named id", async () => {
   assert.notStrictEqual(blog.id, undefined);
 });
 
+test("a new blog can be added", async () => {
+  const response = await api.get("/api/blogs");
+  const blogsAtStart = response.body;
+
+  await api
+    .post("/api/blogs")
+    .send({
+      title: "Testing a new blog",
+      author: "Test Author",
+      url: "https://example.com",
+      likes: 10,
+    })
+    .expect(201);
+
+  const responseAfter = await api.get("/api/blogs");
+  const blogsAfter = responseAfter.body;
+
+  assert.strictEqual(blogsAfter.length, blogsAtStart.length + 1);
+
+  const newBlog = blogsAfter[blogsAfter.length - 1];
+
+  assert.strictEqual(newBlog.title, "Testing a new blog");
+});
+
 // 👈 Cierra la conexión a la base de datos al finalizar
 after(async () => {
   await mongoose.connection.close();

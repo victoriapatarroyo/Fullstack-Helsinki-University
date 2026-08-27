@@ -81,6 +81,21 @@ test("a blog without title or url is not added", async () => {
     .expect(400);
 });
 
+test("a blog can be deleted", async () => {
+  const blogsAtStart = await api.get("/api/blogs");
+
+  const blogToDelete = blogsAtStart.body[0];
+
+  await api.delete(`/api/blogs/${blogToDelete.id}`).expect(204);
+
+  const blogsAtEnd = await api.get("/api/blogs");
+
+  assert.strictEqual(
+    blogsAtEnd.body.some((blog) => blog.id === blogToDelete.id),
+    false,
+  );
+});
+
 // 👈 Cierra la conexión a la base de datos al finalizar
 after(async () => {
   await mongoose.connection.close();

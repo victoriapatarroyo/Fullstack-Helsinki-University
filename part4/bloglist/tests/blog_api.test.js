@@ -151,6 +151,56 @@ test("users are returned as json", async () => {
     .expect("Content-Type", /application\/json/);
 });
 
+test("a user with a too short username is not added", async () => {
+  const newUser = {
+    username: "vi",
+    name: "Victoria",
+    password: "secreto",
+  };
+
+  await api.post("/api/users").send(newUser).expect(400);
+});
+
+test("a user with a too short password is not added", async () => {
+  const newUser = {
+    username: "victoria2",
+    name: "Victoria",
+    password: "12",
+  };
+
+  await api.post("/api/users").send(newUser).expect(400);
+});
+
+test("a user without username is not added", async () => {
+  const newUser = {
+    name: "Victoria",
+    password: "secreto",
+  };
+
+  await api.post("/api/users").send(newUser).expect(400);
+});
+
+test("a user without password is not added", async () => {
+  const newUser = {
+    username: "victoria3",
+    name: "Victoria",
+  };
+
+  await api.post("/api/users").send(newUser).expect(400);
+});
+
+test("a user with an existing username is not added", async () => {
+  const newUser = {
+    username: "victoria",
+    name: "Otra Victoria",
+    password: "secreto",
+  };
+
+  const response = await api.post("/api/users").send(newUser).expect(400);
+
+  assert(response.body.error);
+});
+
 // 👈 Cierra la conexión a la base de datos al finalizar
 after(async () => {
   await mongoose.connection.close();

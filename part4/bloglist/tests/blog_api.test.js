@@ -1,11 +1,14 @@
-const { test, after } = require("node:test"); // 👈 Agregado 'after'
+const { test, after, before } = require("node:test");
 const assert = require("node:assert");
 const supertest = require("supertest");
 const mongoose = require("mongoose"); // 👈 Agregado 'mongoose'
-
 const app = require("../app");
-
+const User = require("../models/user");
 const api = supertest(app);
+
+before(async () => {
+  await User.deleteMany({});
+});
 
 test("blogs are returned as json", async () => {
   const response = await api
@@ -119,6 +122,33 @@ test("a blog can be updated", async () => {
   );
 
   assert.strictEqual(blogAfterUpdate.likes, updatedBlog.likes);
+});
+
+test("a new user can be added", async () => {
+  const newUser = {
+    username: "victoria",
+    name: "Victoria",
+    password: "secreto",
+  };
+
+  await api
+    .post("/api/users")
+    .send(newUser)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const userInDatabase = await User.findOne({
+    username: newUser.username,
+  });
+
+  assert.notStrictEqual(userInDatabase.passwordHash, newUser.password);
+});
+
+test("users are returned as json", async () => {
+  await api
+    .get("/api/users")
+    .expect(200)
+    .expect("Content-Type", /application\/json/);
 });
 
 // 👈 Cierra la conexión a la base de datos al finalizar

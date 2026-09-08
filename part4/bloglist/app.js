@@ -5,6 +5,7 @@ const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const blogsRouter = require("./controllers/blogs");
+const usersRouter = require("./controllers/users");
 
 // Conexión a tu única base de datos MONGODB_URI
 mongoose.set("strictQuery", false);
@@ -22,5 +23,6 @@ app.use(express.json());
 
 // Rutas
 app.use("/api/blogs", blogsRouter);
+app.use("/api/users", usersRouter);
 
 module.exports = app;
